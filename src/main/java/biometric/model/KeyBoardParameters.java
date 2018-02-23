@@ -12,9 +12,11 @@ public class KeyBoardParameters {
   private KeyEvent releasedEvent;
   private KeyEvent typedEvent;
 
+  private EventType event;
+
   private Date pressedTime;
   private Date releasedTime;
   private Date typedTime;
 
-  private int iteration;
+  private int iteration = 1;
 }

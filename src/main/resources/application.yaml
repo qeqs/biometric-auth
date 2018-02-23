@@ -21,3 +21,6 @@ spring:
         hibernate:
           envers:
             track_entities_changed_in_revision: true
+
+application:
+  registration-iterations: "5"

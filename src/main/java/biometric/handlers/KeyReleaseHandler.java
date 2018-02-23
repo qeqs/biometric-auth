@@ -1,5 +1,7 @@
 package biometric.handlers;
 
+import static biometric.model.EventType.RELEASED;
+
 import biometric.model.BiometricData;
 import biometric.model.KeyBoardParameters;
 import javafx.scene.input.KeyCode;
@@ -7,12 +9,12 @@ import javafx.scene.input.KeyCode;
 public class KeyReleaseHandler extends AbstractKeyHandler {
 
   @Override
-  public boolean isApplicableFor(KeyCode key) {
-    return false;
+  protected void actionOnKey(BiometricData data, KeyCode key, KeyBoardParameters params) {
+
   }
 
   @Override
-  protected void actionOnKey(BiometricData data, KeyCode key, KeyBoardParameters params) {
-
+  public boolean isApplicableFor(KeyBoardParameters params) {
+    return RELEASED.equals(params.getEvent()) && params.getReleasedEvent().getCode().isLetterKey();
   }
 }

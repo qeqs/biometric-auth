@@ -14,9 +14,9 @@ public class BiometricData {
 
   @Id
   private String id;
-  private long holdButtonTime;
-  private long pressingFrequency;
-  private long collisionsTime;
-  private long errors;
+  private double holdButtonTime;
+  private double pressingFrequency;
+  private double collisionsTime;
+  private double errors;
 
 }

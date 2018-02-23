@@ -3,15 +3,16 @@ package biometric.handlers;
 import biometric.model.BiometricData;
 import biometric.model.KeyBoardParameters;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 
 public abstract class AbstractKeyHandler implements KeyHandler {
 
   @Override
-  public void handleKey(BiometricData data, KeyCode key, KeyBoardParameters params) {
-    if (!isApplicableFor(key)) {
+  public void handleKey(BiometricData data, KeyEvent event, KeyBoardParameters params) {
+    if (!isApplicableFor(params)) {
       return;
     }
-    actionOnKey(data, key, params);
+    actionOnKey(data, event.getCode(), params);
   }
 
   protected double elapsedValue(double biometricParam, double newData, KeyBoardParameters parameters){
