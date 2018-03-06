@@ -1,15 +1,20 @@
 package biometric;
 
-import biometric.handlers.KeyHandler;
+import biometric.logic.ParametersEvaluation;
 import biometric.model.BiometricData;
-import biometric.model.EventType;
-import biometric.model.KeyBoardParameters;
+import biometric.enums.EventType;
+import biometric.enums.Mode;
+import biometric.model.UserData;
 import biometric.model.repositories.BiometricDataRepository;
-import java.util.Date;
+import biometric.model.repositories.UserDataRepository;
 import java.util.List;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.input.KeyCode;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,21 +26,49 @@ import org.springframework.stereotype.Component;
 public class Controller {
 
   @Autowired
-  BiometricDataRepository repository;
-
+  private BiometricDataRepository repository;
   @Autowired
-  List<KeyHandler> keyHandlers;
+  private UserDataRepository userRepository;
 
   @Value("${application.registration-iterations}")
   private int maxIterations;
 
+  @Value("${application.password}")
+  private String passwordPhrase;
+
+  @FXML
+  private Label labelPasswordPhrase;
+
+  private int iterations;
+
+  @Autowired
+  private ParametersEvaluation evaluation;
+
   @FXML
   private TextArea biometricReader;
 
-  KeyBoardParameters parameters = new KeyBoardParameters();
+  @FXML
+  private TextField loginTextField;
 
-  BiometricData biometricData = new BiometricData();
+  @FXML
+  private Button signInButton;
 
+  @FXML
+  private Button signUpButton;
+
+  @FXML
+  private Label labelIterations;
+
+  private Mode mode = Mode.SIGN_IN;
+
+  public void init() {
+    labelPasswordPhrase.setText("Text example: " + passwordPhrase);
+    updateLabelIterations(0, maxIterations);
+  }
+
+  private void updateLabelIterations(int iter, int maxIters) {
+    labelIterations.setText(iter + "/" + maxIters);
+  }
 
   @FXML
   private void onKeyPressed(KeyEvent event) {
@@ -48,25 +81,97 @@ public class Controller {
   }
 
   @FXML
-  private void onKeyTyped(KeyEvent event) {
-    handleKey(event, EventType.TYPED);
+  private void onSignIn() {
+    mode = Mode.SIGN_IN;
+    loginTextField.setDisable(true);
+    signUpButton.setDisable(false);
+    signInButton.setDisable(true);
+    iterations = 0;
+    evaluation.clear();
+    updateLabelIterations(iterations, 1);
+  }
+
+  @FXML
+  private void onSignUp() {
+    mode = Mode.SIGN_UP;
+    loginTextField.setDisable(false);
+    signInButton.setDisable(false);
+    signUpButton.setDisable(true);
+    iterations = 0;
+    evaluation.clear();
+    updateLabelIterations(iterations, maxIterations);
   }
 
 
   private void handleKey(KeyEvent event, EventType type) {
-    keyHandlers.forEach(handler -> handler.handleKey(biometricData, event, parameters));
+    evaluation.handle(getKeyString(event), event, type);
 
-    parameters.setTypedEvent(event);
-    parameters.setTypedTime(new Date());
-    parameters.setEvent(type);
+    if (evaluation.validate(biometricReader.getText())) {
+      inputCompleted();
+      biometricReader.clear();
+    }
+
+    if (Mode.SIGN_IN.equals(mode) && isSignInInputCompleted()) {
+
+      BiometricData data = evaluation.calculate();
+      List<BiometricData> record = repository.getAll();
+      BiometricData closest = evaluation.matchClosest(data, record);
+      if (closest != null) {
+        UserData userData = userRepository.findByBiometricData(closest);
+        evaluation.clear();
+        showMessage("Hello, " + userData.getLogin(), AlertType.INFORMATION);
+      } else {
+        showMessage("Try again", AlertType.WARNING);
+      }
+      iterations = 0;
+    }
+
+    if (Mode.SIGN_UP.equals(mode) && isRegistrationInputCompleted()) {
+      UserData user = new UserData();
+
+      if (loginTextField.getText().equals("")) {
+        return;
+      }
+
+      user.setBiometricData(evaluation.calculate());
+      user.setLogin(loginTextField.getText());
+      userRepository.save(user);
+      iterations = 0;
+      evaluation.clear();
+      showMessage("Registration completed", AlertType.CONFIRMATION);
+    }
   }
 
-  private boolean isRegistrationInputCompleted(){
-    return parameters.getIteration() > maxIterations;
+  private void showMessage(String text, AlertType type) {
+    Alert alert = new Alert(type);
+    alert.setContentText(text);
+    alert.show();
   }
 
-  private void clearData() {
-    biometricData = new BiometricData();
+  private String getKeyString(KeyEvent event) {
+    if (event.getCode().isLetterKey()) {
+      return event.getCharacter();
+    }
+    return "";
+  }
+
+  private boolean isRegistrationInputCompleted() {
+    return iterations >= maxIterations;
+  }
+
+  private boolean isSignInInputCompleted() {
+    return iterations >= 1;
+  }
+
+  private void inputCompleted() {
+    iterations++;
+    if(Mode.SIGN_UP.equals(mode)){
+      updateLabelIterations(iterations, maxIterations);
+    }
+    else {
+      updateLabelIterations(iterations, 1);
+    }
+    evaluation.iteration();
   }
 
 }
