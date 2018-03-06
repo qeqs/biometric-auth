@@ -42,21 +42,23 @@ public class ParametersEvaluation {
     List<BiometricData> data = base.stream().filter(b -> match(sample, b))
         .collect(Collectors.toList());
     Optional<BiometricData> opData = data.stream()
-        .min((left, right)->
-            (int)(sumParams(getParamsDiff(sample, left)) - sumParams(getParamsDiff(sample, right))));
-    if(opData.isPresent())
+        .min((left, right) ->
+            (int) (sumParams(getParamsDiff(sample, left)) - sumParams(
+                getParamsDiff(sample, right))));
+    if (opData.isPresent()) {
       return opData.get();
+    }
     return null;
   }
 
-  private double sumParams(List<Double> list){
-    return list.stream().flatMapToDouble((d)-> DoubleStream.builder().add(d).build()).sum();
+  private double sumParams(List<Double> list) {
+    return list.stream().flatMapToDouble((d) -> DoubleStream.builder().add(d).build()).sum();
   }
 
   private boolean match(BiometricData left, BiometricData right) {
 
     List<Double> params = getParamsDiff(left, right);
-    return params.stream().filter(param -> Math.abs(param) >= threshold).findAny().isPresent();
+    return params.stream().filter(param -> param >= threshold).findAny().isPresent();
   }
 
   private List<Double> getParamsDiff(BiometricData left, BiometricData right) {
@@ -67,7 +69,7 @@ public class ParametersEvaluation {
     params.add(right.getPrintingSpeed() - left.getPrintingSpeed());
     params.add(right.getCollisionsTime() - left.getCollisionsTime());
     params.add(right.getErrors() - left.getErrors());
-    return params;
+    return params.stream().map(d -> Math.abs(d)).collect(Collectors.toList());
   }
 
   public void iteration() {
@@ -78,7 +80,7 @@ public class ParametersEvaluation {
 
   public BiometricData calculate() {
     BiometricData data = new BiometricData();
-
+    checkData();
     data.setFullTime(countFullTime());
     data.setHoldButtonTime(countHoldButtonTime());
     data.setPressingFrequency(countPressingTime());
@@ -90,6 +92,12 @@ public class ParametersEvaluation {
 
     //clear();
     return data;
+  }
+
+  private void checkData() {
+    phrases.forEach(
+        phrase -> phrase.removeIf(key -> key.getPressedTime() == 0 || key.getReleaseTime() == 0)
+    );
   }
 
   public void clear() {

@@ -59,7 +59,7 @@ public class Controller {
   @FXML
   private Label labelIterations;
 
-  private Mode mode = Mode.SIGN_IN;
+  private Mode mode = Mode.SIGN_UP;
 
   public void init() {
     labelPasswordPhrase.setText("Text example: " + passwordPhrase);
@@ -88,6 +88,8 @@ public class Controller {
     signInButton.setDisable(true);
     iterations = 0;
     evaluation.clear();
+    biometricReader.clear();
+    loginTextField.clear();
     updateLabelIterations(iterations, 1);
   }
 
@@ -99,6 +101,8 @@ public class Controller {
     signUpButton.setDisable(true);
     iterations = 0;
     evaluation.clear();
+    biometricReader.clear();
+    loginTextField.clear();
     updateLabelIterations(iterations, maxIterations);
   }
 
@@ -132,8 +136,9 @@ public class Controller {
       if (loginTextField.getText().equals("")) {
         return;
       }
-
-      user.setBiometricData(evaluation.calculate());
+      BiometricData data = evaluation.calculate();
+      repository.save(data);
+      user.setBiometricData(data);
       user.setLogin(loginTextField.getText());
       userRepository.save(user);
       iterations = 0;
@@ -150,7 +155,7 @@ public class Controller {
 
   private String getKeyString(KeyEvent event) {
     if (event.getCode().isLetterKey()) {
-      return event.getCharacter();
+      return event.getText();
     }
     return "";
   }

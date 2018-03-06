@@ -7,8 +7,9 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.TextFlow?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="358.0" prefWidth="1010.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="biometric.Controller">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="358.0" prefWidth="677.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="biometric.Controller">
    <center>
       <Pane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
          <children>
@@ -16,7 +17,11 @@
             <TextArea fx:id="biometricReader" layoutX="111.0" layoutY="160.0" onKeyPressed="#onKeyPressed" onKeyReleased="#onKeyReleased" prefHeight="67.0" prefWidth="450.0" />
             <Label layoutX="32.0" layoutY="51.0" text="Login:" />
             <Label layoutX="32.0" layoutY="160.0" text="Text:" />
-            <Label fx:id="labelPasswordPhrase" layoutX="113.0" layoutY="113.0" text="Text example: Hello world, World!" />
+            <TextFlow layoutX="113.0" layoutY="101.0" prefHeight="49.0" prefWidth="447.0">
+               <children>
+                  <Label fx:id="labelPasswordPhrase" text="Text example: Hello world, World!" wrapText="true" />
+               </children>
+            </TextFlow>
             <Label fx:id="labelIterations" layoutX="582.0" layoutY="160.0" text="Label" />
          </children>
          <BorderPane.margin>
