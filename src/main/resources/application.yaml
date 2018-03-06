@@ -24,3 +24,5 @@ spring:
 
 application:
   registration-iterations: "5"
+  password: "Hello world goodbye all"
+  threshold: "0.5"
